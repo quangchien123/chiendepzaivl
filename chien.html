@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduHub CGI - Giao &amp; Nộp Bài Tập</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+    .glass-nav { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen">
+
+  <nav class="glass-nav sticky top-0 z-40 border-b border-slate-200/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logo SVG -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <div class="flex items-center">
+          <span class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">EduHub</span>
+          <span class="ml-2 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200">CGI</span>
+        </div>
+      </div>
+
+      <!-- Chuyển vai trò -->
+      <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <button id="btn-role-teacher" onclick="switchRole('teacher')" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-indigo-600 shadow-sm">
+          Giáo viên
+        </button>
+        <button id="btn-role-student" onclick="switchRole('student')" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900">
+          Học sinh
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Toast thông báo -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium flex items-center gap-2.5">
+    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+    <span id="toast-msg">Thao tác thành công!</span>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- KHU VỰC GIÁO VIÊN -->
+    <section id="view-teacher" class="space-y-8">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+          <p class="text-sm font-medium text-slate-500">Tổng bài tập đã giao</p>
+          <p id="stat-total-hw" class="text-3xl font-extrabold text-slate-900 mt-1">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+          <p class="text-sm font-medium text-slate-500">Tổng bài đã nộp</p>
+          <p id="stat-total-sub" class="text-3xl font-extrabold text-indigo-600 mt-1">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+          <p class="text-sm font-medium text-slate-500">Bài chờ chấm điểm</p>
+          <p id="stat-pending" class="text-3xl font-extrabold text-amber-500 mt-1">0</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Form giao bài -->
+        <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm h-fit">
+          <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span class="w-2 h-6 bg-indigo-600 rounded-full"></span>
+            Giao Bài Tập Mới
+          </h2>
+          <form id="form-create-hw" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Tiêu đề bài tập</label>
+              <input type="text" id="hw-title" required placeholder="VD: Đề luyện tập chuyên đề 1" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Môn học</label>
+                <select id="hw-subject" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white">
+                  <option value="Toán học">Toán học</option>
+                  <option value="Tin học">Tin học</option>
+                  <option value="Vật lý">Vật lý</option>
+                  <option value="Hóa học">Hóa học</option>
+                  <option value="Tiếng Anh">Tiếng Anh</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Thang điểm</label>
+                <input type="number" id="hw-score" value="10" min="1" max="100" step="0.5" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Hạn nộp</label>
+              <input type="datetime-local" id="hw-deadline" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nội dung &amp; Yêu cầu</label>
+              <textarea id="hw-desc" rows="3" required placeholder="Nhập hướng dẫn làm bài..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"></textarea>
+            </div>
+            <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md shadow-indigo-500/20 transition-all text-sm">
+              + Phát Hành Bài Tập
+            </button>
+          </form>
+        </div>
+
+        <!-- Danh sách bài nộp & chấm điểm -->
+        <div class="lg:col-span-7 space-y-4">
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
+            Bài Nộp &amp; Chấm Điểm
+          </h2>
+          <div id="teacher-submissions-list" class="space-y-4"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KHU VỰC HỌC SINH -->
+    <section id="view-student" class="hidden space-y-8">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Thông tin học sinh</h2>
+          <p class="text-sm text-slate-500">Nhập họ tên và lớp để nộp bài và xem điểm phản hồi.</p>
+        </div>
+        <div class="flex flex-wrap gap-3 w-full sm:w-auto">
+          <input type="text" id="student-name" placeholder="Họ và tên" class="px-3.5 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+          <input type="text" id="student-class" placeholder="Lớp (VD: 12)" class="w-28 px-3.5 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+      </div>
+
+      <div id="student-assignments-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = "/cgi-bin/api.py";
+    let state = { assignments: [], submissions: [] };
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toast-msg").textContent = msg;
+      toast.classList.remove("hidden");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => toast.classList.add("hidden"), 2800);
+    }
+
+    function switchRole(role) {
+      const isTeacher = role === "teacher";
+      document.getElementById("view-teacher").classList.toggle("hidden", !isTeacher);
+      document.getElementById("view-student").classList.toggle("hidden", isTeacher);
+
+      document.getElementById("btn-role-teacher").className = isTeacher
+        ? "px-4 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-indigo-600 shadow-sm"
+        : "px-4 py-1.5 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900";
+
+      document.getElementById("btn-role-student").className = !isTeacher
+        ? "px-4 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-indigo-600 shadow-sm"
+        : "px-4 py-1.5 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900";
+
+      renderAll();
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch(`${API_URL}?action=get_all`);
+        const json = await res.json();
+        if (json.status === "success") {
+          state = json.data;
+          renderAll();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderAll() {
+      document.getElementById("stat-total-hw").textContent = state.assignments.length;
+      document.getElementById("stat-total-sub").textContent = state.submissions.length;
+      document.getElementById("stat-pending").textContent = state.submissions.filter(
+        s => s.score === null || s.score === "" || s.score === undefined
+      ).length;
+
+      renderSubmissionsForTeacher();
+      renderAssignmentsForStudent();
+    }
+
+    function renderSubmissionsForTeacher() {
+      const box = document.getElementById("teacher-submissions-list");
+      if (!state.submissions.length) {
+        box.innerHTML = `<div class="bg-white p-8 rounded-2xl border border-dashed border-slate-300 text-center text-slate-500 text-sm">Chưa có bài nộp nào.</div>`;
+        return;
+      }
+
+      box.innerHTML = state.submissions.map(sub => {
+        const hw = state.assignments.find(a => a.id === sub.hw_id);
+        const hasScore = sub.score !== null && sub.score !== "" && sub.score !== undefined;
+        return `
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">${escapeHtml(sub.student_class)}</span>
+                <span class="font-bold text-slate-900 ml-1">${escapeHtml(sub.student_name)}</span>
+                <p class="text-xs text-slate-500 mt-0.5">Bài: <b>${escapeHtml(hw ? hw.title : sub.hw_id)}</b> • ${escapeHtml(sub.submitted_at)}</p>
+              </div>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${hasScore ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}">
+                ${hasScore ? `Điểm: ${sub.score}` : "Chờ chấm"}
+              </span>
+            </div>
+            ${sub.content_text ? `<p class="text-sm bg-slate-50 p-3 rounded-xl border border-slate-100 whitespace-pre-line">${escapeHtml(sub.content_text)}</p>` : ""}
+            ${sub.file_name ? `<p class="text-xs text-indigo-600 font-medium">Tệp đính kèm: uploads/${escapeHtml(sub.file_name)}</p>` : ""}
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-2 border-t border-slate-100">
+              <input type="number" step="0.25" min="0" max="${hw ? hw.maxScore : 10}" id="score-${sub.id}" value="${hasScore ? sub.score : ""}" placeholder="Điểm" class="sm:col-span-3 px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="text" id="fb-${sub.id}" value="${escapeHtml(sub.feedback || "")}" placeholder="Nhận xét..." class="sm:col-span-6 px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+              <button onclick="gradeSub('${sub.id}')" class="sm:col-span-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-all">Lưu điểm</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderAssignmentsForStudent() {
+      const box = document.getElementById("student-assignments-list");
+      const nameInput = document.getElementById("student-name").value.trim();
+
+      if (!state.assignments.length) {
+        box.innerHTML = `<div class="col-span-2 bg-white p-8 rounded-2xl border border-dashed border-slate-300 text-center text-slate-500 text-sm">Chưa có bài tập nào.</div>`;
+        return;
+      }
+
+      box.innerHTML = state.assignments.map(hw => {
+        const mySub = nameInput
+          ? state.submissions.find(s => s.hw_id === hw.id && s.student_name.toLowerCase() === nameInput.toLowerCase())
+          : null;
+        const hasScore = mySub && mySub.score !== null && mySub.score !== "" && mySub.score !== undefined;
+
+        return `
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-violet-50 text-violet-700">${escapeHtml(hw.subject)}</span>
+                <span class="text-xs font-semibold text-slate-500">Thang điểm: ${hw.maxScore}</span>
+              </div>
+              <h3 class="text-lg font-bold text-slate-900">${escapeHtml(hw.title)}</h3>
+              <p class="text-sm text-slate-600 whitespace-pre-line">${escapeHtml(hw.description)}</p>
+              <p class="text-xs text-rose-600 font-semibold">Hạn nộp: ${escapeHtml(hw.deadline.replace("T", " "))}</p>
+            </div>
+
+            ${hasScore ? `
+              <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm">
+                <p class="font-bold text-emerald-800">Điểm: ${mySub.score} / ${hw.maxScore}</p>
+                ${mySub.feedback ? `<p class="text-emerald-700 mt-1">Nhận xét: ${escapeHtml(mySub.feedback)}</p>` : ""}
+              </div>
+            ` : ""}
+
+            <form onsubmit="submitHw(event, '${hw.id}')" class="space-y-3 pt-3 border-t border-slate-100">
+              <textarea name="content_text" rows="2" placeholder="Nhập lời giải hoặc ghi chú..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500">${mySub ? escapeHtml(mySub.content_text) : ""}</textarea>
+              <input type="file" name="file_upload" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100" />
+              <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all">
+                ${mySub ? "Cập Nhật Bài Nộp" : "Nộp Bài"}
+              </button>
+            </form>
+          </div>
+        `;
+      }).join("");
+    }
+
+    document.getElementById("form-create-hw").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById("hw-title").value,
+        subject: document.getElementById("hw-subject").value,
+        maxScore: document.getElementById("hw-score").value,
+        deadline: document.getElementById("hw-deadline").value,
+        description: document.getElementById("hw-desc").value
+      };
+      const res = await fetch(`${API_URL}?action=create_assignment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (json.status === "success") {
+        e.target.reset();
+        showToast("Đã phát hành bài tập!");
+        loadData();
+      }
+    });
+
+    async function submitHw(e, hwId) {
+      e.preventDefault();
+      const studentName = document.getElementById("student-name").value.trim();
+      const studentClass = document.getElementById("student-class").value.trim();
+      if (!studentName || !studentClass) {
+        alert("Vui lòng nhập Họ tên và Lớp trước khi nộp bài.");
+        return;
+      }
+
+      const fd = new FormData(e.target);
+      fd.append("hw_id", hwId);
+      fd.append("student_name", studentName);
+      fd.append("student_class", studentClass);
+
+      const res = await fetch(`${API_URL}?action=submit_homework`, {
+        method: "POST",
+        body: fd
+      });
+      const json = await res.json();
+      if (json.status === "success") {
+        showToast("Đã nộp bài!");
+        loadData();
+      }
+    }
+
+    async function gradeSub(subId) {
+      const scoreVal = document.getElementById(`score-${subId}`).value;
+      const fbVal = document.getElementById(`fb-${subId}`).value;
+      const res = await fetch(`${API_URL}?action=grade_submission`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sub_id: subId, score: scoreVal, feedback: fbVal })
+      });
+      const json = await res.json();
+      if (json.status === "success") {
+        showToast("Đã lưu điểm!");
+        loadData();
+      }
+    }
+
+    document.getElementById("student-name").addEventListener("input", renderAssignmentsForStudent);
+    loadData();
+  </script>
+</body>
+</html>
